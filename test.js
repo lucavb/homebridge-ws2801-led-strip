@@ -9,4 +9,6 @@ console.log(rgbConversion.rgbToHsl(255, 255, 255));
 
 console.log(rgbConversion.hslToRgb(0,0,50));
 
-leds.fill(64, 64, 64);
+//leds.fill(64, 64, 64);
+
+leds.invert();

@@ -19,7 +19,7 @@ function WS2801LED(log, config) {
     this.leds.connect(config.led_count);
     this.leds.fill(0xFF, 0xFF, 0xFF);
     this.ledsStatus = {
-        "onoff" : true,
+        "on" : true,
         "values" : rgbConversion.rgbToHsl(255, 255, 255)
     };
 
@@ -59,7 +59,7 @@ function WS2801LED(log, config) {
         .on('set', this.setBright.bind(this));
 
 
-    this.service_led.getCharacteristic(Characteristic.On).setValue(this.ledsStatus.onoff);
+    this.service_led.getCharacteristic(Characteristic.On).setValue(this.ledsStatus.on);
     this.service_led.getCharacteristic(Characteristic.Hue).setValue(this.ledsStatus.values[0]);
     this.service_led.getCharacteristic(Characteristic.Saturation).setValue(this.ledsStatus.values[1]);
     this.service_led.getCharacteristic(Characteristic.Brightness).setValue(this.ledsStatus.values[2]);
@@ -80,16 +80,16 @@ WS2801LED.prototype.setOn = function(status, callback) {
     if (status) {
         var rgb = rgbConversion.hslToRgb(this.ledsStatus.values[0], this.ledsStatus.values[1], this.ledsStatus.values[2]);
         this.leds.fill(rgb.r, rgb.g, rgb.b);
-        this.ledsStatus.onoff = true;
+        this.ledsStatus.on = true;
     } else {
         this.leds.clear();
-        this.ledsStatus.onoff = false;
+        this.ledsStatus.on = false;
     }
     callback();
 };
 
 WS2801LED.prototype.getOn = function(callback) {
-    callback(null, this.ledsStatus.onoff);
+    callback(null, this.ledsStatus.on);
 };
 
 
@@ -102,8 +102,10 @@ WS2801LED.prototype.getHue = function(callback) {
 
 WS2801LED.prototype.setHue = function(level, callback) {
     this.ledsStatus.values[0] = level;
-    var rgb = rgbConversion.hslToRgb(this.ledsStatus.values[0], this.ledsStatus.values[1], this.ledsStatus.values[2]);
-    this.leds.fill(rgb.r, rgb.g, rgb.b);
+    if (this.ledsStatus.on) {
+        var rgb = rgbConversion.hslToRgb(this.ledsStatus.values[0], this.ledsStatus.values[1], this.ledsStatus.values[2]);
+        this.leds.fill(rgb.r, rgb.g, rgb.b);
+    }
     callback();
 };
 
@@ -118,8 +120,10 @@ WS2801LED.prototype.getSat = function(callback) {
 
 WS2801LED.prototype.setSat = function(level, callback) {
     this.ledsStatus.values[1] = level;
-    var rgb = rgbConversion.hslToRgb(this.ledsStatus.values[0], this.ledsStatus.values[1], this.ledsStatus.values[2]);
-    this.leds.fill(rgb.r, rgb.g, rgb.b);
+    if (this.ledsStatus.on) {
+        var rgb = rgbConversion.hslToRgb(this.ledsStatus.values[0], this.ledsStatus.values[1], this.ledsStatus.values[2]);
+        this.leds.fill(rgb.r, rgb.g, rgb.b);
+    }
     callback();
 };
 
@@ -132,8 +136,10 @@ WS2801LED.prototype.getBright = function(callback) {
 
 WS2801LED.prototype.setBright = function(level, callback) {
     this.ledsStatus.values[2] = level;
-    var rgb = rgbConversion.hslToRgb(this.ledsStatus.values[0], this.ledsStatus.values[1], this.ledsStatus.values[2]);
-    this.leds.fill(rgb.r, rgb.g, rgb.b);
+    if (this.ledsStatus.on) {
+        var rgb = rgbConversion.hslToRgb(this.ledsStatus.values[0], this.ledsStatus.values[1], this.ledsStatus.values[2]);
+        this.leds.fill(rgb.r, rgb.g, rgb.b);
+    }
     callback();
 };
 

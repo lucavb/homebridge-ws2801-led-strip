@@ -1,3 +1,10 @@
+/* 
+
+Thanks to Garry Tan for the conversion methods.
+http://axonflux.com/handy-rgb-to-hsl-and-rgb-to-hsv-color-model-c
+
+*/
+
 
 /**
  * Converts an HSV color value to RGB. Conversion formula
