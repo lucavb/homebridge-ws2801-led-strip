@@ -1,22 +1,35 @@
 {
-    "name": "homebridge-ws2801-led-strip",
-    "version": "0.1",
-    "description": "control ws2801 led strip",
-    "main": "index.js",
-    "scripts": {
-        "test": "echo \"Error: no test specified\" && exit 1"
-    },
-    "keywords": [
-        "homebridge-plugin",
-        "ws2801"
-    ],
-    "author": "lucabecker",
-    "license": "none",
-    "engines" : {
-        "node": ">=0.12.0",
-        "homebridge": ">=0.2.0"
-    },
-    "dependencies" : {
-        "rpi-ws2801" : "0.0.4"
-    }
+  "name": "homebridge-ws2801-led-strip",
+  "version": "1.0.0",
+  "description": "Homebridge plugin for the ws2801 led strip",
+  "main": "index.js",
+  "dependencies": {
+    "rpi-ws2801": "^0.0.4"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lucavb/homebridge-ws2801-led-strip.git"
+  },
+  "keywords": [
+    "homebridge-plugin",
+    "ledstrip",
+    "ws2801"
+  ],
+  "author": "Luca Becker",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/lucavb/homebridge-ws2801-led-strip/issues"
+  },
+  "homepage": "https://github.com/lucavb/homebridge-ws2801-led-strip#readme",
+  "engines" : {
+    "node": ">=0.12.0",
+    "homebridge": ">=0.2.0"
+  },
+  "dependencies" : {
+    "rpi-ws2801" : "0.0.4"
+  }
 }
