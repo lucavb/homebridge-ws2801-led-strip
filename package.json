@@ -30,6 +30,7 @@
     "homebridge": ">=0.2.0"
   },
   "dependencies" : {
-    "rpi-ws2801" : "0.0.4"
+    "rpi-ws2801" : "0.0.4",
+    "onoff" : "1.1.0"
   }
 }
