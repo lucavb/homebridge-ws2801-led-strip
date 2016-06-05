@@ -14,6 +14,7 @@ module.exports = function(homebridge) {
 };
 
 function WS2801LED(log, config) {
+    var that = this;
     this.log = log;
     this.name = config.name;
     this.leds = ledsGlobal  // i know this is not good. on top doesn't work because it would disable multiple light strips
@@ -72,7 +73,6 @@ function WS2801LED(log, config) {
 
     if (config.buttonID) {
         this.button = new Gpio(config.buttonID, 'in', 'both');
-        var that = this;
         this.buttonPressStamp = null;
         this.shortPressRGB = config.shortPressRGB;
         this.button.watch(function(err, value) {
@@ -110,6 +110,12 @@ function WS2801LED(log, config) {
         process.on('SIGINT', function () {
             that.button.unexport();
         });
+    }
+
+    if (config.rewrite && config.rewrite > 0) {
+        this.interval = setInterval(function() {
+            that.setOn(that.ledsStatus.on, function() {});
+        }, config.rewrite * 1000);
     }
 }
 
