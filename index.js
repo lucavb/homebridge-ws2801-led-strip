@@ -3,6 +3,7 @@ var Characteristic;
 var HomebridgeAPI;
 var ledsGlobal = require("rpi-ws2801");
 var rgbConversion = require("./rgbConversion");
+var Gpio = require('onoff').Gpio;
 
 module.exports = function(homebridge) {
     Service = homebridge.hap.Service;
@@ -13,6 +14,7 @@ module.exports = function(homebridge) {
 };
 
 function WS2801LED(log, config) {
+    var that = this;
     this.log = log;
     this.name = config.name;
     this.leds = ledsGlobal; // i know this is not good. on top doesn't work because it would disable multiple light strips
@@ -63,6 +65,58 @@ function WS2801LED(log, config) {
     this.service_led.getCharacteristic(Characteristic.Hue).setValue(this.ledsStatus.values[0]);
     this.service_led.getCharacteristic(Characteristic.Saturation).setValue(this.ledsStatus.values[1]);
     this.service_led.getCharacteristic(Characteristic.Brightness).setValue(this.ledsStatus.values[2]);
+
+
+
+
+    // button support
+
+    if (config.buttonID) {
+        this.button = new Gpio(config.buttonID, 'in', 'both');
+        this.buttonPressStamp = null;
+        this.shortPressRGB = config.shortPressRGB;
+        this.button.watch(function(err, value) {
+            if (value == 1) {
+                that.buttonPressStamp = new Date();
+            } else {
+                var now = new Date();
+                if (now - that.buttonPressStamp < 250) {
+                    var rgb = that.shortPressRGB;
+
+                    that.ledsStatus.on = true;
+                    that.ledsStatus.values = rgbConversion.rgbToHsl(rgb[0], rgb[1], rgb[2]);
+
+
+                    that.service_led.getCharacteristic(Characteristic.On).setValue(that.ledsStatus.on);
+                    that.service_led.getCharacteristic(Characteristic.Hue).setValue(that.ledsStatus.values[0]);
+                    that.service_led.getCharacteristic(Characteristic.Saturation).setValue(that.ledsStatus.values[1]);
+                    that.service_led.getCharacteristic(Characteristic.Brightness).setValue(that.ledsStatus.values[2]);
+                } else if (now - that.buttonPressStamp < 1250) {
+
+
+                    that.ledsStatus.values[2] = (that.ledsStatus.values[2] + 25) % 100;
+                    that.ledsStatus.on = true;
+
+                    that.service_led.getCharacteristic(Characteristic.On).setValue(that.ledsStatus.on);
+                    that.service_led.getCharacteristic(Characteristic.Brightness).setValue(that.ledsStatus.values[2]);
+
+                } else {
+                    that.ledsStatus.on = false;
+                    that.service_led.getCharacteristic(Characteristic.On).setValue(that.ledsStatus.on);
+                    return;
+                }
+            }
+        });
+        process.on('SIGINT', function () {
+            that.button.unexport();
+        });
+    }
+
+    if (config.rewrite && config.rewrite > 0) {
+        this.interval = setInterval(function() {
+            that.setOn(that.ledsStatus.on, function() {});
+        }, config.rewrite * 1000);
+    }
 }
 
 WS2801LED.prototype.getServices = function() {
