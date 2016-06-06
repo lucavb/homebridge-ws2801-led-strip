@@ -41,6 +41,7 @@ This project is currently not submitted to npmjs so you will need to manually do
 | Key           | Description                                                                        |
 |---------------|------------------------------------------------------------------------------------|
 | accessory     | Required. Has to be "ws2801-led-strip"                                             |
+| name          | Required. The name of this accessory. This will appear in your homekit app         |
 | led_count     | Required. The number of LEDs you want to control with this plug-in. In this case 70 |
 | serial        | Optional. You can choose to define a serial number for this accessory              |
 | shortPressRGB | Optional. You can define an RGB color that can be enable by pressing an button.    |
