@@ -2,6 +2,7 @@ var Service;
 var Characteristic;
 var HomebridgeAPI;
 var ledsGlobal = require("rpi-ws2801");
+var ads1x15 = require('./node-ads1x15/index');
 var rgbConversion = require("./rgbConversion");
 var Gpio = require('onoff').Gpio;
 
@@ -24,6 +25,16 @@ function WS2801LED(log, config) {
         "on" : true,
         "values" : rgbConversion.rgbToHsl(255, 255, 255)
     };
+
+    if (config.adc) {
+        this.adc = new ads1x15(config.adc.adsChip || 1);
+        this.channel = config.adc.adcChannel || 0;
+        this.samplesPerSecond =  config.adc.samplesPerSecond || '250';
+        this.progGainAmp = config.adc.progGainAmp || '4096';
+        this.upperBound = config.adc.upperBound || 32767;
+        this.lowerBound = config.adc.lowerBound || 0;
+        this.potentioVCC = new Gpio(config.adc.potentioVCC, 'out');
+    }
 
     // info service
     this.informationService = new Service.AccessoryInformation();
@@ -78,33 +89,57 @@ function WS2801LED(log, config) {
         this.button.watch(function(err, value) {
             if (value == 1) {
                 that.buttonPressStamp = new Date();
-            } else {
+            } 
+            else {
                 var now = new Date();
-                if (now - that.buttonPressStamp < 250) {
+                var diff = now - that.buttonPressStamp;
+                if (diff < 250) {
+                    that.ledsStatus.on = !that.ledsStatus.on;
+                    that.service_led.getCharacteristic(Characteristic.On).setValue(that.ledsStatus.on);
+                } else if (diff < 1250) {
                     var rgb = that.shortPressRGB;
-
                     that.ledsStatus.on = true;
                     that.ledsStatus.values = rgbConversion.rgbToHsl(rgb[0], rgb[1], rgb[2]);
-
-
                     that.service_led.getCharacteristic(Characteristic.On).setValue(that.ledsStatus.on);
                     that.service_led.getCharacteristic(Characteristic.Hue).setValue(that.ledsStatus.values[0]);
                     that.service_led.getCharacteristic(Characteristic.Saturation).setValue(that.ledsStatus.values[1]);
                     that.service_led.getCharacteristic(Characteristic.Brightness).setValue(that.ledsStatus.values[2]);
-                } else if (now - that.buttonPressStamp < 1250) {
-
-
-                    that.ledsStatus.values[2] = (that.ledsStatus.values[2] + 25) % 100;
-                    that.ledsStatus.on = true;
-
-                    that.service_led.getCharacteristic(Characteristic.On).setValue(that.ledsStatus.on);
-                    that.service_led.getCharacteristic(Characteristic.Brightness).setValue(that.ledsStatus.values[2]);
-
                 } else {
-                    that.ledsStatus.on = false;
-                    that.service_led.getCharacteristic(Characteristic.On).setValue(that.ledsStatus.on);
-                    return;
+                    var old_value = -1;
+                    that.potentioVCC.writeSync(1);
+                    if(that.adc && !that.intervalPotentio) {
+                        that.intervalPotentio = setInterval(function() {
+                            if(!that.adc.busy) {
+                                that.adc.readADCSingleEnded(
+                                    that.channel, 
+                                    that.progGainAmp, 
+                                    that.samplesPerSecond, 
+                                    function(err, data) 
+                                {
+                                    var val = 100 - parseInt(((Math.abs(data) - that.lowerBound) / (that.upperBound - that.lowerBound))* 100);
+                                    if (val == old_value) return;
+                                    old_value = val;
+                                    that.ledsStatus.on = true;
+                                    that.ledsStatus.values[2] = val;
+                                    that.service_led.getCharacteristic(Characteristic.On).setValue(that.ledsStatus.on);
+                                    that.service_led.getCharacteristic(Characteristic.Hue).setValue(that.ledsStatus.values[0]);
+                                    that.service_led.getCharacteristic(Characteristic.Saturation).setValue(that.ledsStatus.values[1]);
+                                    that.service_led.getCharacteristic(Characteristic.Brightness).setValue(that.ledsStatus.values[2]);
+                                });
+                            }
+                        }, 150);
+                        setTimeout(function() {
+                            clearInterval(that.intervalPotentio);
+                            that.intervalPotentio = null;
+                            that.potentioVCC.writeSync(0);
+                        }, 10*1000);
+                    } else if (that.adc && that.intervalPotentio) {
+                        clearInterval(that.intervalPotentio);
+                        that.intervalPotentio = null;
+                        that.potentioVCC.writeSync(0);
+                    }
                 }
+                    
             }
         });
         process.on('SIGINT', function () {
