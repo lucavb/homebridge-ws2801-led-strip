@@ -18,7 +18,7 @@ function WS2801LED(log, config) {
     var that = this;
     this.log = log;
     this.name = config.name;
-    this.leds = ledsGlobal  // i know this is not good. on top doesn't work because it would disable multiple light strips
+    this.leds = ledsGlobal; // i know this is not good. on top doesn't work because it would disable multiple light strips
     this.leds.connect(config.led_count);
     this.leds.fill(0xFF, 0xFF, 0xFF);
     this.ledsStatus = {

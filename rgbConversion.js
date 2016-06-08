@@ -39,7 +39,7 @@ module.exports.hslToRgb =function(h, s, v) {
     }
     var rgb = { r: Math.round(r * 255), g: Math.round(g * 255), b: Math.round(b * 255) };
     return rgb;
-}
+};
 
 /**
  * Converts an RGB color value to HSL. Conversion formula
@@ -76,4 +76,4 @@ module.exports.rgbToHsl = function(r, g, b){
     s *= 100; // return percent [0..100]
     l *= 100; // return percent [0..100]
     return [parseInt(h), parseInt(s), parseInt(l)];
-}
+};
